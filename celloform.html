@@ -1,0 +1,89 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<style>
+		#iframe_container iframe
+		{
+			position:absolute;
+			top:0;
+			left:0;
+			width: 100%;
+			height: 100%;
+			overflow: scroll;
+			display: none;
+		}
+	</style>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+</head>
+<body>
+
+	<div class="container" id="iframe_container">
+		<iframe frameborder="0" id="transaction"></iframe>
+	</div>
+	<script>
+		function create_session(template){
+			$.ajax({
+				url: 'https://my.cellosign.com/sbc/rep/create_session',
+				type: 'POST',
+				data: JSON.stringify({"template":template}),
+				cache: false,
+				contentType: "application/json; charset=utf-8",
+				beforeSend: function (xhr)
+				{
+					xhr.setRequestHeader("Authorization", "Token 937ba1ce1c35b712b39a7fe2a7f3e7b75b2738bc");
+				},
+				success: function (data)
+				{
+					console.log(data)
+					//Implementation example (1) pros: easy, cons: might be blocked by popup blocker
+					//window.open(data.client_session)
+
+					//Implementation example (1) pros: no popups
+					document.getElementById("transaction").src=data.client_session
+					toggle_iframe(true)
+
+				},
+				error: function (jqXHR, textStatus, errorThrown)
+				{
+					console.log(textStatus)
+					//Alert users for errors
+				}
+			})
+		}
+
+		function toggle_iframe(d)
+		{
+			if (d)
+			{
+				$("#iframe_container iframe").show()
+			}
+			else
+			{
+				$("#iframe_container iframe").hide()
+			}
+		}
+	
+		function checkIframeUrl(url)
+		{
+			try
+			{
+				if (url.pathname.endsWith("nosession") || url.pathname.endsWith("session_deleted"))
+				{
+					document.getElementById("transaction").src = 'about:blank';
+					toggle_iframe(false)
+				}
+			}
+			catch(err)
+			{
+				document.getElementById("transaction").src = 'about:blank';
+				toggle_iframe(false)
+			}
+		}
+	</script>
+	<script defer>
+		create_session('568631ff45b4471abf5c15e4454a23cb');
+	</script>
+</body>
+</html>
